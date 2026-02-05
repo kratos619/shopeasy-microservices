@@ -1,24 +1,36 @@
-name : CI - User service
+name: CI - User Service
 
-on :
-    push:
-        branches : [ main , develop  ]
-    pull_request:
-        branches : [ main , develop  ]
+# TRIGGER: When does this run?
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
 
-jobs :
-    test-user-service:
-        runs-on : ubuntu-latest
-
-        steps :
-        - name : Checkout code
-          uses : actions/checkout@v4
-
-        - name : Setup Node.js
-          uses : actions/setup-node@v4
-          with :
-            node-version : '18'
-
-        - name : Run tests
-          working-directory: ./services/user-service
-          run: npm test
+# JOBS: What work gets done?
+jobs:
+  test-user-service:
+    # GitHub provides free Ubuntu runners
+    runs-on: ubuntu-latest
+    
+    # STEPS: Sequential tasks
+    steps:
+      # Step 1: Get the code
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Step 2: Install Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        working-directory: ./services/user-service
+        run: npm install
+      
+      # Step 4: Run tests
+      - name: Run tests
+        working-directory: ./services/user-service
+        run: npm test
