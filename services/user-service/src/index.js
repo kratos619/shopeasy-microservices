@@ -48,8 +48,12 @@ app.get("/users/:id", (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, () => {
-  console.log(`User service running on port ${PORT}`);
-});
-
+// Export the app for testing
 module.exports = app;
+
+// Only start server if this file is run directly (not required by tests)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`User service running on port ${PORT}`);
+  });
+}
