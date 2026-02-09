@@ -2,36 +2,31 @@ name: CI/CD - User Service
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, qa ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop, qa ]
 
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
     
     steps:
-      # Step 1: Get the code
       - name: Checkout code
         uses: actions/checkout@v4
       
-      # Step 2: Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
       
-      # Step 3: Install dependencies
       - name: Install dependencies
         working-directory: ./services/user-service
         run: npm install
       
-      # Step 4: Run tests
       - name: Run tests
         working-directory: ./services/user-service
         run: npm test
       
-      # Step 5: Login to Docker Hub (only on push, not PR)
       - name: Login to Docker Hub
         if: github.event_name == 'push'
         uses: docker/login-action@v3
@@ -39,7 +34,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
-      # Step 6: Build Docker image (only on push, not PR)
       - name: Build Docker image
         if: github.event_name == 'push'
         working-directory: ./services/user-service
@@ -47,9 +41,56 @@ jobs:
           docker build -t gauravpal1828/user-service:${{ github.sha }} .
           docker build -t gauravpal1828/user-service:latest .
       
-      # Step 7: Push to Docker Hub (only on push, not PR)
       - name: Push Docker image
         if: github.event_name == 'push'
         run: |
           docker push gauravpal1828/user-service:${{ github.sha }}
           docker push gauravpal1828/user-service:latest
+
+  deploy-dev:
+    needs: test-and-build
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: DEV
+    
+    steps:
+      - name: Deploy to DEV
+        run: |
+          echo "🚀 Deploying to DEV environment"
+          echo "Image: gauravpal1828/user-service:${{ github.sha }}"
+          echo "DB Host: ${{ secrets.DB_HOST }}"
+          echo "DB Name: ${{ secrets.DB_NAME }}"
+          echo "DB User: ${{ secrets.DB_USER }}"
+          echo "✅ Deployment to DEV complete!"
+
+  deploy-qa:
+    needs: test-and-build
+    if: github.ref == 'refs/heads/qa' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: QA
+    
+    steps:
+      - name: Deploy to QA
+        run: |
+          echo "🚀 Deploying to QA environment"
+          echo "Image: gauravpal1828/user-service:${{ github.sha }}"
+          echo "DB Host: ${{ secrets.DB_HOST }}"
+          echo "DB Name: ${{ secrets.DB_NAME }}"
+          echo "DB User: ${{ secrets.DB_USER }}"
+          echo "✅ Deployment to QA complete!"
+
+  deploy-prod:
+    needs: test-and-build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: PROD
+    
+    steps:
+      - name: Deploy to PROD
+        run: |
+          echo "🚀 Deploying to PROD environment"
+          echo "Image: gauravpal1828/user-service:${{ github.sha }}"
+          echo "DB Host: ${{ secrets.DB_HOST }}"
+          echo "DB Name: ${{ secrets.DB_NAME }}"
+          echo "DB User: ${{ secrets.DB_USER }}"
+          echo "✅ Deployment to PROD complete!"
