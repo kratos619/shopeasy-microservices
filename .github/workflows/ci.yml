@@ -54,15 +54,16 @@ jobs:
     environment: DEV
     
     steps:
-      - name: Deploy to DEV
+      - name: Deploy to DEV EC2
         run: |
-          echo "🚀 Deploying to DEV environment"
-          echo "Image: gauravpal1828/user-service:${{ github.sha }}"
-          echo "DB Host: ${{ secrets.DB_HOST }}"
-          echo "DB Name: ${{ secrets.DB_NAME }}"
-          echo "DB User: ${{ secrets.DB_USER }}"
-          echo "✅ Deployment to DEV complete!"
-
+          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          chmod 400 key.pem
+          ssh -i key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_DEV_IP }} "
+            docker pull gauravpal1828/user-service:${{ github.sha }} &&
+            docker stop user-service || true &&
+            docker rm user-service || true &&
+            docker run -d -p 3001:3001 --name user-service gauravpal1828/user-service:${{ github.sha }}
+          "
   deploy-qa:
     needs: test-and-build
     if: github.ref == 'refs/heads/qa' && github.event_name == 'push'
