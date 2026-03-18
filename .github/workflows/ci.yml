@@ -56,7 +56,7 @@ jobs:
     steps:
       - name: Deploy to DEV EC2
         run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > key.pem
           chmod 400 key.pem
           ssh -i key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_DEV_IP }} "
             docker pull gauravpal1828/user-service:${{ github.sha }} &&
