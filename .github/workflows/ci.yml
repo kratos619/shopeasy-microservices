@@ -62,7 +62,12 @@ jobs:
               docker pull gauravpal1828/user-service:${{ github.sha }} &&
               docker stop user-service || true &&
               docker rm user-service || true &&
-              docker run -d -p 3001:3001 --name user-service gauravpal1828/user-service:${{ github.sha }}
+              docker run -d -p 3001:3001 --name user-service \
+              -e DB_HOST=${{ secrets.DB_HOST }} \
+              -e DB_USER=${{ secrets.DB_USER }} \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e DB_NAME=${{ secrets.DB_NAME }} \
+              gauravpal1828/user-service:${{ github.sha }}
             "
           
   deploy-qa:
