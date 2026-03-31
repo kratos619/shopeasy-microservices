@@ -11,4 +11,4 @@ terraform.tfvars
 *.tfstate.*
 
 # Security / Keys
-*.pem
+*.pem.terraform/
