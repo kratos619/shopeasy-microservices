@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-service-config
+  namespace: dev
+data:
+  DB_NAME: shopeasy_dev
+  DB_PORT: "3306"

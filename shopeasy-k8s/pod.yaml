@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: user-service
+  labels:
+    app: user-service
+spec:
+  containers:
+    - name: user-service
+      image: gauravpal1828/user-service:latest
+      ports:
+        - containerPort: 3001
