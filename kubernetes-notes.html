@@ -1,0 +1,1868 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kubernetes Notes — Gaurav</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #080812;
+            color: #f0f0f5;
+            min-height: 100vh;
+            padding: 32px 20px 80px;
+        }
+
+        /* ── Header ── */
+        .header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .header p {
+            color: #4b5563;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* ── Section labels ── */
+        .section {
+            max-width: 1200px;
+            margin: 0 auto 12px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #374151;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #111827;
+        }
+
+        /* ── Grid ── */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 16px;
+            max-width: 1200px;
+            margin: 0 auto 32px;
+        }
+
+        .span2 {
+            grid-column: span 2;
+        }
+
+        .span3 {
+            grid-column: 1 / -1;
+        }
+
+        @media(max-width:760px) {
+
+            .span2,
+            .span3 {
+                grid-column: span 1;
+            }
+        }
+
+        /* ── Cards ── */
+        .card {
+            border-radius: 18px;
+            padding: 22px;
+            position: relative;
+            overflow: hidden;
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, .5);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 18px 18px 0 0;
+        }
+
+        .c-blue {
+            background: #0a1525;
+        }
+
+        .c-blue::before {
+            background: linear-gradient(90deg, #60a5fa, #2563eb);
+        }
+
+        .c-purple {
+            background: #110d20;
+        }
+
+        .c-purple::before {
+            background: linear-gradient(90deg, #a78bfa, #7c3aed);
+        }
+
+        .c-green {
+            background: #081510;
+        }
+
+        .c-green::before {
+            background: linear-gradient(90deg, #34d399, #059669);
+        }
+
+        .c-orange {
+            background: #150e04;
+        }
+
+        .c-orange::before {
+            background: linear-gradient(90deg, #fbbf24, #d97706);
+        }
+
+        .c-pink {
+            background: #150810;
+        }
+
+        .c-pink::before {
+            background: linear-gradient(90deg, #f472b6, #db2777);
+        }
+
+        .c-teal {
+            background: #051515;
+        }
+
+        .c-teal::before {
+            background: linear-gradient(90deg, #2dd4bf, #0d9488);
+        }
+
+        .c-red {
+            background: #150808;
+        }
+
+        .c-red::before {
+            background: linear-gradient(90deg, #f87171, #dc2626);
+        }
+
+        .c-amber {
+            background: #140f03;
+        }
+
+        .c-amber::before {
+            background: linear-gradient(90deg, #fcd34d, #f59e0b);
+        }
+
+        .card-emoji {
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 17px;
+            font-weight: 800;
+            margin-bottom: 14px;
+        }
+
+        .c-blue .card-title {
+            color: #93c5fd;
+        }
+
+        .c-purple .card-title {
+            color: #c4b5fd;
+        }
+
+        .c-green .card-title {
+            color: #6ee7b7;
+        }
+
+        .c-orange .card-title {
+            color: #fde68a;
+        }
+
+        .c-pink .card-title {
+            color: #fbcfe8;
+        }
+
+        .c-teal .card-title {
+            color: #99f6e4;
+        }
+
+        .c-red .card-title {
+            color: #fca5a5;
+        }
+
+        .c-amber .card-title {
+            color: #fde68a;
+        }
+
+        /* ── Code blocks ── */
+        .code {
+            background: #050508;
+            border: 1px solid #1f2937;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11.5px;
+            line-height: 1.9;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+
+        .kw {
+            color: #f472b6;
+        }
+
+        .str {
+            color: #34d399;
+        }
+
+        .val {
+            color: #fbbf24;
+        }
+
+        .cmt {
+            color: #374151;
+            font-style: italic;
+        }
+
+        .key {
+            color: #93c5fd;
+        }
+
+        .num {
+            color: #fb923c;
+        }
+
+        /* ── Architecture diagram ── */
+        .arch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+        }
+
+        .arch-box {
+            width: 100%;
+            border-radius: 14px;
+            padding: 14px 16px;
+            text-align: center;
+            position: relative;
+        }
+
+        .arch-label {
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .arch-sub {
+            font-size: 11px;
+            font-weight: 600;
+            opacity: .6;
+            margin-top: 2px;
+        }
+
+        .arch-arrow {
+            font-size: 20px;
+            color: #1f2937;
+            margin: 2px 0;
+            line-height: 1;
+        }
+
+        .arch-cluster {
+            background: #1a1030;
+            border: 1px solid #3730a3;
+        }
+
+        .arch-cluster .arch-label {
+            color: #a78bfa;
+        }
+
+        .arch-cp {
+            background: #0d1f35;
+            border: 1px solid #1d4ed8;
+        }
+
+        .arch-cp .arch-label {
+            color: #60a5fa;
+        }
+
+        .arch-node {
+            background: #0d200d;
+            border: 1px solid #15803d;
+        }
+
+        .arch-node .arch-label {
+            color: #34d399;
+        }
+
+        .arch-pod {
+            background: #1a1200;
+            border: 1px solid #92400e;
+        }
+
+        .arch-pod .arch-label {
+            color: #fbbf24;
+        }
+
+        /* ── Concept rows ── */
+        .concept-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .concept-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        .concept-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .concept-body {
+            flex: 1;
+        }
+
+        .concept-name {
+            font-size: 13px;
+            font-weight: 800;
+            color: #f0f0f5;
+            margin-bottom: 2px;
+        }
+
+        .concept-desc {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+
+        .concept-desc strong {
+            color: #fbbf24;
+        }
+
+        /* ── Command table ── */
+        .cmd-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .cmd-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, .03);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, .04);
+        }
+
+        .cmd-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fbbf24;
+            min-width: 190px;
+            flex-shrink: 0;
+        }
+
+        .cmd-desc {
+            font-size: 11.5px;
+            color: #6b7280;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        /* ── Analogy cards ── */
+        .analogy {
+            display: flex;
+            gap: 14px;
+            padding: 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, .03);
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        .analogy-left {
+            text-align: center;
+            min-width: 52px;
+        }
+
+        .analogy-emoji {
+            font-size: 28px;
+            display: block;
+        }
+
+        .analogy-tag {
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #4b5563;
+            margin-top: 2px;
+        }
+
+        .analogy-right {
+            flex: 1;
+        }
+
+        .analogy-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #f0f0f5;
+            margin-bottom: 4px;
+        }
+
+        .analogy-text {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .analogy-text strong {
+            color: #a78bfa;
+        }
+
+        /* ── Flow steps ── */
+        .flow {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 4px;
+        }
+
+        .flow-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .flow-content {
+            flex: 1;
+        }
+
+        .flow-title {
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .flow-sub {
+            font-size: 11px;
+            font-weight: 600;
+            opacity: .6;
+            margin-top: 1px;
+        }
+
+        .flow-arrow {
+            text-align: center;
+            color: #1f2937;
+            font-size: 16px;
+            margin: 1px 0;
+        }
+
+        .fs-write {
+            background: #150d25;
+        }
+
+        .fs-write .flow-title {
+            color: #c4b5fd;
+        }
+
+        .fs-plan {
+            background: #0a1525;
+        }
+
+        .fs-plan .flow-title {
+            color: #93c5fd;
+        }
+
+        .fs-apply {
+            background: #081512;
+        }
+
+        .fs-apply .flow-title {
+            color: #6ee7b7;
+        }
+
+        .fs-destroy {
+            background: #150808;
+        }
+
+        .fs-destroy .flow-title {
+            color: #fca5a5;
+        }
+
+        /* ── Tabs ── */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            background: rgba(255, 255, 255, .05);
+            color: #6b7280;
+            border: 1px solid rgba(255, 255, 255, .08);
+            transition: all .2s;
+        }
+
+        .tab.active {
+            background: #7c3aed;
+            color: white;
+            border-color: #7c3aed;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ── Checklist ── */
+        .checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 9px 12px;
+            background: rgba(255, 255, 255, .03);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background .2s;
+            user-select: none;
+        }
+
+        .check-item:hover {
+            background: rgba(255, 255, 255, .06);
+        }
+
+        .check-item.done {
+            opacity: .4;
+        }
+
+        .check-item.done .check-text {
+            text-decoration: line-through;
+        }
+
+        .check-box {
+            width: 18px;
+            height: 18px;
+            border-radius: 5px;
+            border: 2px solid #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 11px;
+            margin-top: 1px;
+            transition: all .2s;
+        }
+
+        .check-item.done .check-box {
+            background: #059669;
+            border-color: #059669;
+            color: white;
+        }
+
+        .check-text {
+            font-size: 12px;
+            font-weight: 700;
+            color: #d1d5db;
+            line-height: 1.5;
+        }
+
+        /* ── File badge ── */
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: 9px;
+        }
+
+        .fi-must {
+            background: #0d1f0d;
+            border: 1px solid #15803d33;
+        }
+
+        .fi-sense {
+            background: #0d1525;
+            border: 1px solid #1d4ed833;
+        }
+
+        .fi-opt {
+            background: #150d00;
+            border: 1px solid #92400e33;
+        }
+
+        .fi-never {
+            background: #150808;
+            border: 1px solid #dc262633;
+        }
+
+        .fi-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .fi-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .fi-must .fi-name {
+            color: #34d399;
+        }
+
+        .fi-sense .fi-name {
+            color: #60a5fa;
+        }
+
+        .fi-opt .fi-name {
+            color: #fbbf24;
+        }
+
+        .fi-never .fi-name {
+            color: #f87171;
+        }
+
+        .fi-badge {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .fi-must .fi-badge {
+            background: #34d399;
+            color: #081510;
+        }
+
+        .fi-sense .fi-badge {
+            background: #60a5fa;
+            color: #0a1525;
+        }
+
+        .fi-opt .fi-badge {
+            background: #fbbf24;
+            color: #150e04;
+        }
+
+        .fi-never .fi-badge {
+            background: #f87171;
+            color: #150808;
+        }
+
+        /* ── Ports visual ── */
+        .port-chain {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .port-box {
+            padding: 10px 14px;
+            border-radius: 10px;
+            text-align: center;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .port-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .port-lbl {
+            font-size: 10px;
+            font-weight: 700;
+            opacity: .7;
+            margin-top: 2px;
+            text-transform: uppercase;
+        }
+
+        .port-arrow {
+            color: #374151;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .pb-app {
+            background: #081512;
+            border: 1px solid #05966933;
+        }
+
+        .pb-app .port-num {
+            color: #34d399;
+        }
+
+        .pb-node {
+            background: #0a1525;
+            border: 1px solid #1d4ed833;
+        }
+
+        .pb-node .port-num {
+            color: #60a5fa;
+        }
+
+        .pb-mk {
+            background: #150e04;
+            border: 1px solid #92400e33;
+        }
+
+        .pb-mk .port-num {
+            color: #fbbf24;
+        }
+
+        /* ── Lesson rows ── */
+        .lesson-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .lesson-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, .03);
+            border-radius: 10px;
+            border-left: 3px solid #374151;
+        }
+
+        .lesson-item.warn {
+            border-left-color: #f87171;
+        }
+
+        .lesson-item.tip {
+            border-left-color: #34d399;
+        }
+
+        .lesson-item.info {
+            border-left-color: #60a5fa;
+        }
+
+        .lesson-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .lesson-body {
+            flex: 1;
+        }
+
+        .lesson-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: #f0f0f5;
+            margin-bottom: 2px;
+        }
+
+        .lesson-desc {
+            font-size: 11.5px;
+            color: #6b7280;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .lesson-desc code {
+            background: #111827;
+            padding: 1px 5px;
+            border-radius: 4px;
+            color: #fbbf24;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10.5px;
+        }
+
+        /* ── Banner ── */
+        .banner {
+            max-width: 1200px;
+            margin: 0 auto 32px;
+            background: linear-gradient(135deg, #110d20, #0a1525, #051515);
+            border: 1px solid #3730a344;
+            border-radius: 18px;
+            padding: 24px 32px;
+            text-align: center;
+        }
+
+        .banner-emoji {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .banner h2 {
+            font-size: 22px;
+            font-weight: 900;
+            color: #a78bfa;
+            margin-bottom: 8px;
+        }
+
+        .banner p {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 600;
+            line-height: 1.7;
+        }
+
+        .banner p strong {
+            color: #f0f0f5;
+        }
+
+        /* ── HPA visual ── */
+        .hpa-bars {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+            height: 100px;
+            margin: 12px 0;
+        }
+
+        .hpa-bar-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .hpa-bar {
+            width: 100%;
+            border-radius: 6px 6px 0 0;
+            transition: height .3s;
+        }
+
+        .hpa-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #6b7280;
+        }
+
+        .hpa-pods {
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        /* ── Probe visual ── */
+        .probe-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .probe-step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .ps-boot {
+            background: #0d1525;
+            color: #60a5fa;
+        }
+
+        .ps-waiting {
+            background: #150e04;
+            color: #fbbf24;
+        }
+
+        .ps-fail {
+            background: #150808;
+            color: #f87171;
+        }
+
+        .ps-pass {
+            background: #081512;
+            color: #34d399;
+        }
+
+        .ps-traffic {
+            background: #110d20;
+            color: #a78bfa;
+        }
+
+        .probe-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .pd-blue {
+            background: #60a5fa;
+        }
+
+        .pd-yellow {
+            background: #fbbf24;
+        }
+
+        .pd-red {
+            background: #f87171;
+        }
+
+        .pd-green {
+            background: #34d399;
+        }
+
+        .pd-purple {
+            background: #a78bfa;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>☸️ Kubernetes Notes</h1>
+        <p>ShopEasy Project · Gaurav Pal · 2026</p>
+    </div>
+
+    <!-- Banner -->
+    <div class="banner">
+        <span class="banner-emoji">🧠</span>
+        <h2>The Core Mental Model</h2>
+        <p>You don't tell K8s <strong>"start a container on server 3."</strong><br>
+            You say <strong>"I always want 3 copies of user-service running."</strong><br>
+            K8s figures out where, keeps them alive, restarts them if they crash, and scales them when traffic
+            spikes.<br>
+            That's the fundamental shift from Docker to Kubernetes.</p>
+    </div>
+
+    <!-- SECTION: Architecture -->
+    <div class="section">🏗️ Architecture — The Big Picture</div>
+    <div class="grid">
+
+        <!-- Cluster Architecture -->
+        <div class="card c-blue">
+            <span class="card-emoji">🌐</span>
+            <div class="card-title">Cluster Architecture</div>
+            <div class="arch">
+                <div class="arch-box arch-cluster" style="padding:10px 16px">
+                    <div class="arch-label">☸️ Cluster — your entire K8s world</div>
+                    <div class="arch-sub">On AWS this is your EKS cluster</div>
+                </div>
+                <div style="display:flex;gap:8px;width:100%;margin-top:8px">
+                    <div style="flex:1">
+                        <div class="arch-box arch-cp" style="margin-bottom:8px">
+                            <div class="arch-label">🧠 Control Plane</div>
+                            <div class="arch-sub">Brain — AWS manages in EKS</div>
+                        </div>
+                        <div class="arch-box arch-cp" style="font-size:11px;padding:8px">
+                            <div style="color:#60a5fa;font-weight:700">API Server · Scheduler</div>
+                            <div style="color:#4b5563;font-size:10px">etcd · Controller</div>
+                        </div>
+                    </div>
+                    <div style="flex:1">
+                        <div class="arch-box arch-node" style="margin-bottom:8px">
+                            <div class="arch-label">💻 Worker Node</div>
+                            <div class="arch-sub">EC2 instance (you pay for this)</div>
+                        </div>
+                        <div class="arch-box arch-pod" style="margin-bottom:4px">
+                            <div class="arch-label" style="font-size:12px">📦 Pod → Container</div>
+                        </div>
+                        <div class="arch-box arch-pod">
+                            <div class="arch-label" style="font-size:12px">📦 Pod → Container</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Russian Doll -->
+        <div class="card c-purple">
+            <span class="card-emoji">🪆</span>
+            <div class="card-title">Russian Doll Hierarchy</div>
+            <div class="analogy">
+                <div class="analogy-left"><span class="analogy-emoji">👔</span>
+                    <div class="analogy-tag">Manager</div>
+                </div>
+                <div class="analogy-right">
+                    <div class="analogy-title">Deployment</div>
+                    <div class="analogy-text">The outer doll. Says <strong>"always keep N pods alive, roll updates
+                            safely."</strong> You only ever create this.</div>
+                </div>
+            </div>
+            <div class="analogy">
+                <div class="analogy-left"><span class="analogy-emoji">💪</span>
+                    <div class="analogy-tag">Bodyguard</div>
+                </div>
+                <div class="analogy-right">
+                    <div class="analogy-title">ReplicaSet</div>
+                    <div class="analogy-text">Middle doll. Maintains the exact replica count. <strong>Never create this
+                            directly</strong> — Deployment manages it.</div>
+                </div>
+            </div>
+            <div class="analogy">
+                <div class="analogy-left"><span class="analogy-emoji">🏠</span>
+                    <div class="analogy-tag">Home</div>
+                </div>
+                <div class="analogy-right">
+                    <div class="analogy-title">Pod</div>
+                    <div class="analogy-text">Inner doll. Where your container actually runs. <strong>Never create raw
+                            pods</strong> — always use Deployment.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- K8s vs Docker -->
+        <div class="card c-teal">
+            <span class="card-emoji">⚡</span>
+            <div class="card-title">Why K8s over Docker alone?</div>
+            <div class="concept-list">
+                <div class="concept-item">
+                    <span class="concept-icon">💀</span>
+                    <div class="concept-body">
+                        <div class="concept-name">Docker: container crashes → app down</div>
+                        <div class="concept-desc">K8s: <strong>auto-restarts in seconds</strong>, users never know</div>
+                    </div>
+                </div>
+                <div class="concept-item">
+                    <span class="concept-icon">📈</span>
+                    <div class="concept-body">
+                        <div class="concept-name">Docker: traffic spike → one server overwhelmed</div>
+                        <div class="concept-desc">K8s: <strong>HPA auto-scales pods</strong> across multiple servers
+                        </div>
+                    </div>
+                </div>
+                <div class="concept-item">
+                    <span class="concept-icon">🔄</span>
+                    <div class="concept-body">
+                        <div class="concept-name">Docker: deploy = restart = downtime</div>
+                        <div class="concept-desc">K8s: <strong>rolling updates</strong> — zero downtime, always</div>
+                    </div>
+                </div>
+                <div class="concept-item">
+                    <span class="concept-icon">🖥️</span>
+                    <div class="concept-body">
+                        <div class="concept-name">Docker: you manage each server manually</div>
+                        <div class="concept-desc">K8s: <strong>treats 100 servers as one</strong> — you never SSH in
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SECTION: Core Concepts -->
+    <div class="section">📦 Core Concepts — What Each File Does</div>
+    <div class="grid">
+
+        <!-- Pod -->
+        <div class="card c-orange">
+            <span class="card-emoji">📦</span>
+            <div class="card-title">Pod — the smallest unit</div>
+            <div class="concept-list" style="margin-bottom:12px">
+                <div class="concept-item">
+                    <span class="concept-icon">🎯</span>
+                    <div class="concept-body">
+                        <div class="concept-name">What it is</div>
+                        <div class="concept-desc">A wrapper around one container. K8s never manages containers directly
+                            — only pods.</div>
+                    </div>
+                </div>
+                <div class="concept-item">
+                    <span class="concept-icon">⚠️</span>
+                    <div class="concept-body">
+                        <div class="concept-name">Raw pods — never in production</div>
+                        <div class="concept-desc">If a raw pod crashes, it stays dead. <strong>Always use Deployment
+                                instead.</strong></div>
+                    </div>
+                </div>
+            </div>
+            <div class="code">
+                <span class="kw">apiVersion</span>: <span class="val">v1</span><br>
+                <span class="kw">kind</span>: <span class="val">Pod</span> <span class="cmt"># never use this in
+                    prod</span><br>
+                <span class="kw">metadata</span>:<br>
+                &nbsp;&nbsp;<span class="key">name</span>: <span class="str">user-service</span><br>
+                &nbsp;&nbsp;<span class="key">namespace</span>: <span class="str">dev</span><br>
+                &nbsp;&nbsp;<span class="key">labels</span>:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">app</span>: <span class="str">user-service</span> <span
+                    class="cmt"># 🔑 the label — glue for Service</span><br>
+                <span class="kw">spec</span>:<br>
+                &nbsp;&nbsp;<span class="key">containers</span>:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;- <span class="key">name</span>: <span class="str">user-service</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">image</span>: <span
+                    class="str">gauravpal1828/user-service:latest</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">ports</span>:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="key">containerPort</span>: <span
+                    class="num">3001</span>
+            </div>
+        </div>
+
+        <!-- Deployment -->
+        <div class="card c-blue span2">
+            <span class="card-emoji">🚀</span>
+            <div class="card-title">Deployment — the manager (always use this)</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div>
+                    <div class="concept-list" style="margin-bottom:12px">
+                        <div class="concept-item">
+                            <span class="concept-icon">🔁</span>
+                            <div class="concept-body">
+                                <div class="concept-name">replicas: 2</div>
+                                <div class="concept-desc">Always keep 2 pods alive. Pod crashes → K8s creates
+                                    replacement automatically.</div>
+                            </div>
+                        </div>
+                        <div class="concept-item">
+                            <span class="concept-icon">🎯</span>
+                            <div class="concept-body">
+                                <div class="concept-name">selector.matchLabels</div>
+                                <div class="concept-desc">"I manage all pods with label <strong>app:
+                                        user-service</strong>". Must match template labels.</div>
+                            </div>
+                        </div>
+                        <div class="concept-item">
+                            <span class="concept-icon">📋</span>
+                            <div class="concept-body">
+                                <div class="concept-name">template</div>
+                                <div class="concept-desc">The pod blueprint. Every new pod is created from this
+                                    template.</div>
+                            </div>
+                        </div>
+                        <div class="concept-item">
+                            <span class="concept-icon">🔄</span>
+                            <div class="concept-body">
+                                <div class="concept-name">RollingUpdate (default)</div>
+                                <div class="concept-desc">Replace pods one at a time. Old pod killed only AFTER new pod
+                                    is healthy.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="code" style="font-size:11px">
+                    <span class="kw">apiVersion</span>: <span class="val">apps/v1</span><br>
+                    <span class="kw">kind</span>: <span class="val">Deployment</span><br>
+                    <span class="kw">metadata</span>:<br>
+                    &nbsp;&nbsp;<span class="key">name</span>: <span class="str">user-service</span><br>
+                    &nbsp;&nbsp;<span class="key">namespace</span>: <span class="str">dev</span><br>
+                    <span class="kw">spec</span>:<br>
+                    &nbsp;&nbsp;<span class="key">replicas</span>: <span class="num">2</span><br>
+                    &nbsp;&nbsp;<span class="key">selector</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">matchLabels</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">app</span>: <span
+                        class="str">user-service</span><br>
+                    &nbsp;&nbsp;<span class="key">template</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">metadata</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">labels</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">app</span>: <span
+                        class="str">user-service</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">spec</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">containers</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="key">name</span>: <span
+                        class="str">user-service</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">image</span>: <span
+                        class="str">gauravpal1828/user-service:latest</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">ports</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span
+                        class="key">containerPort</span>: <span class="num">3001</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">resources</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">requests</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">cpu</span>: <span class="str">"100m"</span> <span class="cmt"># min
+                        needed</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">memory</span>: <span class="str">"128Mi"</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">limits</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">cpu</span>: <span class="str">"200m"</span> <span class="cmt"># hard
+                        ceiling</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">memory</span>: <span class="str">"256Mi"</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">envFrom</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span
+                        class="key">configMapRef</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">name</span>: <span class="str">user-service-config</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span
+                        class="key">secretRef</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">name</span>: <span class="str">user-service-secret</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">readinessProbe</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">httpGet</span>: {<span class="key">path</span>: <span class="str">/health</span>,
+                    <span class="key">port</span>: <span class="num">3001</span>}<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">initialDelaySeconds</span>: <span class="num">5</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">periodSeconds</span>: <span class="num">10</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">livenessProbe</span>:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">httpGet</span>: {<span class="key">path</span>: <span class="str">/health</span>,
+                    <span class="key">port</span>: <span class="num">3001</span>}<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">initialDelaySeconds</span>: <span class="num">15</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                        class="key">periodSeconds</span>: <span class="num">20</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service -->
+        <div class="card c-green">
+            <span class="card-emoji">🚪</span>
+            <div class="card-title">Service — the permanent door</div>
+            <div class="analogy" style="margin-bottom:12px">
+                <div class="analogy-left"><span class="analogy-emoji">🏨</span>
+                    <div class="analogy-tag">Analogy</div>
+                </div>
+                <div class="analogy-right">
+                    <div class="analogy-title">Hotel Receptionist</div>
+                    <div class="analogy-text">Traffic comes in → receptionist checks labels → routes to correct pod.
+                        Even if pods restart with new names, service always finds them by label.</div>
+                </div>
+            </div>
+            <div class="code">
+                <span class="kw">apiVersion</span>: <span class="val">v1</span><br>
+                <span class="kw">kind</span>: <span class="val">Service</span><br>
+                <span class="kw">metadata</span>:<br>
+                &nbsp;&nbsp;<span class="key">name</span>: <span class="str">user-service</span><br>
+                &nbsp;&nbsp;<span class="key">namespace</span>: <span class="str">dev</span><br>
+                <span class="kw">spec</span>:<br>
+                &nbsp;&nbsp;<span class="key">selector</span>:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">app</span>: <span class="str">user-service</span> <span
+                    class="cmt"># finds pods by this label</span><br>
+                &nbsp;&nbsp;<span class="key">ports</span>:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;- <span class="key">port</span>: <span class="num">3001</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">targetPort</span>: <span
+                    class="num">3001</span><br>
+                &nbsp;&nbsp;<span class="key">type</span>: <span class="val">NodePort</span> <span class="cmt"># local
+                    only, use Ingress in prod</span>
+            </div>
+        </div>
+
+        <!-- ConfigMap + Secret -->
+        <div class="card c-pink">
+            <span class="card-emoji">🔐</span>
+            <div class="card-title">ConfigMap + Secret — env vars</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+                <div>
+                    <div
+                        style="font-size:11px;font-weight:800;color:#f472b6;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">
+                        ConfigMap — safe to see</div>
+                    <div class="code" style="font-size:10.5px">
+                        <span class="kw">kind</span>: <span class="val">ConfigMap</span><br>
+                        <span class="kw">metadata</span>:<br>
+                        &nbsp;&nbsp;<span class="key">name</span>: <span class="str">user-service-config</span><br>
+                        <span class="kw">data</span>:<br>
+                        &nbsp;&nbsp;<span class="key">DB_NAME</span>: <span class="str">shopeasy_dev</span><br>
+                        &nbsp;&nbsp;<span class="key">DB_PORT</span>: <span class="str">"3306"</span>
+                    </div>
+                </div>
+                <div>
+                    <div
+                        style="font-size:11px;font-weight:800;color:#f472b6;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">
+                        Secret — encrypted</div>
+                    <div class="code" style="font-size:10.5px">
+                        <span class="kw">kind</span>: <span class="val">Secret</span><br>
+                        <span class="kw">metadata</span>:<br>
+                        &nbsp;&nbsp;<span class="key">name</span>: <span class="str">user-service-secret</span><br>
+                        <span class="kw">stringData</span>:<br>
+                        &nbsp;&nbsp;<span class="key">DB_USER</span>: <span class="str">admin</span><br>
+                        &nbsp;&nbsp;<span class="key">DB_PASSWORD</span>: <span class="str">ShopEasy2026!!</span>
+                    </div>
+                </div>
+            </div>
+            <div class="lesson-list">
+                <div class="lesson-item warn">
+                    <span class="lesson-icon">⚠️</span>
+                    <div class="lesson-body">
+                        <div class="lesson-title">Critical: Name must match exactly</div>
+                        <div class="lesson-desc">If <code>configMapRef.name</code> doesn't match
+                            <code>metadata.name</code> → <code>CrashLoopBackOff</code></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SECTION: Ingress + Namespace -->
+    <div class="section">🌐 Ingress, Namespace & Ports</div>
+    <div class="grid">
+
+        <!-- Namespace -->
+        <div class="card c-teal">
+            <span class="card-emoji">📁</span>
+            <div class="card-title">Namespace — isolation</div>
+            <div class="analogy" style="margin-bottom:12px">
+                <div class="analogy-left"><span class="analogy-emoji">🗂️</span>
+                    <div class="analogy-tag">Analogy</div>
+                </div>
+                <div class="analogy-right">
+                    <div class="analogy-title">Folders on your computer</div>
+                    <div class="analogy-text">Two files called <strong>resume.pdf</strong> in different folders — no
+                        conflict. Same pods, different namespaces — no conflict.</div>
+                </div>
+            </div>
+            <div class="code" style="margin-bottom:12px">
+                <span class="kw">kind</span>: <span class="val">Namespace</span><br>
+                <span class="kw">metadata</span>:<br>
+                &nbsp;&nbsp;<span class="key">name</span>: <span class="str">dev</span>
+            </div>
+            <div class="cmd-list">
+                <div class="cmd-item"><span class="cmd-code">kubectl get all -n dev</span><span class="cmd-desc">See
+                        everything in dev namespace</span></div>
+                <div class="cmd-item"><span class="cmd-code">-n dev</span><span class="cmd-desc">Always add this flag —
+                        never work in default</span></div>
+            </div>
+        </div>
+
+        <!-- Ingress -->
+        <div class="card c-purple">
+            <span class="card-emoji">🏬</span>
+            <div class="card-title">Ingress — single entry point</div>
+            <div class="analogy" style="margin-bottom:12px">
+                <div class="analogy-left"><span class="analogy-emoji">🛡️</span>
+                    <div class="analogy-tag">Analogy</div>
+                </div>
+                <div class="analogy-right">
+                    <div class="analogy-title">Mall main entrance</div>
+                    <div class="analogy-text">One door. Security guard checks where you're going → directs you to right
+                        shop. Clean URLs, standard ports, HTTPS.</div>
+                </div>
+            </div>
+            <div class="code">
+                <span class="kw">kind</span>: <span class="val">Ingress</span><br>
+                <span class="kw">spec</span>:<br>
+                &nbsp;&nbsp;<span class="key">rules</span>:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;- <span class="key">host</span>: <span class="str">shopeasy.local</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">http</span>:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">paths</span>:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="key">path</span>: <span
+                    class="str">/</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                    class="key">pathType</span>: <span class="val">Prefix</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                    class="key">backend</span>:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                    class="key">service</span>:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                    class="key">name</span>: <span class="str">user-service</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                    class="key">port</span>: {<span class="key">number</span>: <span class="num">3001</span>}
+            </div>
+        </div>
+
+        <!-- Ports Explained -->
+        <div class="card c-amber">
+            <span class="card-emoji">🔌</span>
+            <div class="card-title">3 Ports — don't confuse them</div>
+            <div class="port-chain" style="margin-bottom:14px">
+                <div class="port-box pb-app">
+                    <div class="port-num">3001</div>
+                    <div class="port-lbl">App port</div>
+                    <div style="font-size:10px;color:#374151;margin-top:4px">Express listens here</div>
+                </div>
+                <div class="port-arrow">→</div>
+                <div class="port-box pb-node">
+                    <div class="port-num">30xxx</div>
+                    <div class="port-lbl">NodePort</div>
+                    <div style="font-size:10px;color:#374151;margin-top:4px">K8s assigns (30000-32767)</div>
+                </div>
+                <div class="port-arrow">→</div>
+                <div class="port-box pb-mk">
+                    <div class="port-num">50xxx</div>
+                    <div class="port-lbl">minikube</div>
+                    <div style="font-size:10px;color:#374151;margin-top:4px">Mac→cluster tunnel</div>
+                </div>
+            </div>
+            <div class="lesson-list">
+                <div class="lesson-item tip">
+                    <span class="lesson-icon">💡</span>
+                    <div class="lesson-body">
+                        <div class="lesson-title">With Ingress — clean URLs</div>
+                        <div class="lesson-desc">Before: <code>localhost:50618/health</code> &nbsp;After:
+                            <code>shopeasy.local/health</code></div>
+                    </div>
+                </div>
+                <div class="lesson-item info">
+                    <span class="lesson-icon">⚙️</span>
+                    <div class="lesson-body">
+                        <div class="lesson-title">Setup for local Ingress</div>
+                        <div class="lesson-desc"><code>minikube addons enable ingress</code> then
+                            <code>minikube tunnel</code> + add <code>127.0.0.1 shopeasy.local</code> to
+                            <code>/etc/hosts</code></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SECTION: HPA + Probes -->
+    <div class="section">📈 HPA, Probes & Resource Limits</div>
+    <div class="grid">
+
+        <!-- HPA -->
+        <div class="card c-green">
+            <span class="card-emoji">📈</span>
+            <div class="card-title">HPA — Horizontal Pod Autoscaler</div>
+            <div class="analogy" style="margin-bottom:12px">
+                <div class="analogy-left"><span class="analogy-emoji">🍽️</span>
+                    <div class="analogy-tag">Analogy</div>
+                </div>
+                <div class="analogy-right">
+                    <div class="analogy-title">Restaurant calling extra waiters</div>
+                    <div class="analogy-text">Saturday night rush → call in 5 extra waiters. Quiet Tuesday → send 3
+                        home. <strong>Pay only for what you need.</strong></div>
+                </div>
+            </div>
+            <div class="code" style="margin-bottom:12px">
+                <span class="kw">kind</span>: <span class="val">HorizontalPodAutoscaler</span><br>
+                <span class="kw">spec</span>:<br>
+                &nbsp;&nbsp;<span class="key">scaleTargetRef</span>:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">kind</span>: <span class="val">Deployment</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">name</span>: <span class="str">user-service</span><br>
+                &nbsp;&nbsp;<span class="key">minReplicas</span>: <span class="num">2</span> <span class="cmt"># never
+                    go below 2</span><br>
+                &nbsp;&nbsp;<span class="key">maxReplicas</span>: <span class="num">5</span> <span class="cmt"># safety
+                    ceiling</span><br>
+                &nbsp;&nbsp;<span class="key">metrics</span>:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;- <span class="key">type</span>: <span class="val">Resource</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">resource</span>:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">name</span>: <span
+                    class="str">cpu</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">target</span>:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">averageUtilization</span>:
+                <span class="num">50</span>
+            </div>
+            <div class="lesson-list">
+                <div class="lesson-item info">
+                    <span class="lesson-icon">📊</span>
+                    <div class="lesson-body">
+                        <div class="lesson-title">What cpu: 124%/50% means</div>
+                        <div class="lesson-desc">Pod demanding 124% of its 200m limit. Scale up fast. Scale down has
+                            <strong>5 min cooldown</strong> to prevent flapping.</div>
+                    </div>
+                </div>
+                <div class="lesson-item warn">
+                    <span class="lesson-icon">⚠️</span>
+                    <div class="lesson-body">
+                        <div class="lesson-title">HPA needs metrics-server</div>
+                        <div class="lesson-desc"><code>minikube addons enable metrics-server</code> — without it CPU
+                            shows <code>&lt;unknown&gt;</code></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Probes -->
+        <div class="card c-blue">
+            <span class="card-emoji">🩺</span>
+            <div class="card-title">Probes — health intelligence</div>
+            <div style="margin-bottom:12px">
+                <div style="font-size:12px;font-weight:800;color:#93c5fd;margin-bottom:8px">Readiness Probe — traffic
+                    gate</div>
+                <div class="probe-timeline">
+                    <div class="probe-step ps-boot">
+                        <div class="probe-dot pd-blue"></div>Container starts, app booting
+                    </div>
+                    <div class="probe-step ps-waiting">
+                        <div class="probe-dot pd-yellow"></div>Probe checks /health — 5s delay, then every 10s
+                    </div>
+                    <div class="probe-step ps-fail">
+                        <div class="probe-dot pd-red"></div>DB not connected yet → returns 503 → probe fails
+                    </div>
+                    <div class="probe-step ps-pass">
+                        <div class="probe-dot pd-green"></div>DB connected → /health returns 200 → probe passes
+                    </div>
+                    <div class="probe-step ps-traffic">
+                        <div class="probe-dot pd-purple"></div>K8s marks Ready → load balancer sends traffic
+                    </div>
+                </div>
+            </div>
+            <div style="margin-bottom:12px">
+                <div style="font-size:12px;font-weight:800;color:#93c5fd;margin-bottom:8px">Liveness Probe — restart
+                    trigger</div>
+                <div class="probe-timeline">
+                    <div class="probe-step ps-boot">
+                        <div class="probe-dot pd-blue"></div>App runs fine for days
+                    </div>
+                    <div class="probe-step ps-fail">
+                        <div class="probe-dot pd-red"></div>App deadlocks — process runs but handles no requests
+                    </div>
+                    <div class="probe-step ps-fail">
+                        <div class="probe-dot pd-red"></div>/health stops responding → liveness fails 3 times
+                    </div>
+                    <div class="probe-step ps-pass">
+                        <div class="probe-dot pd-green"></div>K8s kills and restarts the pod automatically
+                    </div>
+                </div>
+            </div>
+            <div class="lesson-list">
+                <div class="lesson-item warn">
+                    <span class="lesson-icon">🧠</span>
+                    <div class="lesson-body">
+                        <div class="lesson-title">Intelligence lives in your app code</div>
+                        <div class="lesson-desc">Your <code>/health</code> endpoint must check DB connection — not just
+                            return 200. K8s just calls it, your code decides what "healthy" means.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resource Limits -->
+        <div class="card c-red">
+            <span class="card-emoji">⚖️</span>
+            <div class="card-title">Resource Limits — boundaries</div>
+            <div class="code" style="margin-bottom:12px">
+                <span class="key">resources</span>:<br>
+                &nbsp;&nbsp;<span class="key">requests</span>: <span class="cmt"># minimum needed to schedule</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">cpu</span>: <span class="str">"100m"</span> <span
+                    class="cmt"># 100 millicores = 0.1 core</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">memory</span>: <span class="str">"128Mi"</span><br>
+                &nbsp;&nbsp;<span class="key">limits</span>: <span class="cmt"># hard ceiling — never exceed</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">cpu</span>: <span class="str">"200m"</span> <span
+                    class="cmt"># 1000m = 1 full CPU core</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">memory</span>: <span class="str">"256Mi"</span>
+            </div>
+            <div class="concept-list">
+                <div class="concept-item">
+                    <span class="concept-icon">📐</span>
+                    <div class="concept-body">
+                        <div class="concept-name">requests = reservation</div>
+                        <div class="concept-desc">K8s uses this to pick which node to place the pod on. Node must have
+                            at least 100m free.</div>
+                    </div>
+                </div>
+                <div class="concept-item">
+                    <span class="concept-icon">🚫</span>
+                    <div class="concept-body">
+                        <div class="concept-name">limits = ceiling</div>
+                        <div class="concept-desc">Pod tries to use more → K8s throttles it. Prevents one bad pod
+                            <strong>eating the entire node</strong>.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SECTION: CronJob -->
+    <div class="section">⏰ CronJob — Scheduled Tasks</div>
+    <div class="grid">
+
+        <div class="card c-amber span2">
+            <span class="card-emoji">⏰</span>
+            <div class="card-title">CronJob — run tasks on a schedule</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div>
+                    <div style="margin-bottom:12px">
+                        <div style="font-size:12px;font-weight:800;color:#fde68a;margin-bottom:8px">Cron schedule syntax
+                        </div>
+                        <div class="code" style="font-size:11px">
+                            <span class="cmt"># ┌───── minute (0-59)</span><br>
+                            <span class="cmt"># │ ┌─── hour (0-23)</span><br>
+                            <span class="cmt"># │ │ ┌─ day of month</span><br>
+                            <span class="cmt"># │ │ │ ┌ month</span><br>
+                            <span class="cmt"># │ │ │ │ ┌ day of week</span><br>
+                            <span class="str">"*/1 * * * *"</span> <span class="cmt"># every minute</span><br>
+                            <span class="str">"0 2 * * *"</span> <span class="cmt"># daily at 2am</span><br>
+                            <span class="str">"0 8 * * 1"</span> <span class="cmt"># monday 8am</span><br>
+                            <span class="str">"0 0 * * 0"</span> <span class="cmt"># every sunday midnight</span>
+                        </div>
+                    </div>
+                    <div class="lesson-list">
+                        <div class="lesson-item warn">
+                            <span class="lesson-icon">🚨</span>
+                            <div class="lesson-body">
+                                <div class="lesson-title">Always call process.exit(0)</div>
+                                <div class="lesson-desc">Without it K8s thinks job is still running.
+                                    <code>exit(0)</code> = success. <code>exit(1)</code> = failure → K8s retries.</div>
+                            </div>
+                        </div>
+                        <div class="lesson-item tip">
+                            <span class="lesson-icon">💡</span>
+                            <div class="lesson-body">
+                                <div class="lesson-title">Real-world usage at Yodda</div>
+                                <div class="lesson-desc">You write <code>hello.js</code> + the YAML schedule. DevOps
+                                    deploys it. Your image must contain the file.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="code" style="font-size:11px">
+                        <span class="kw">apiVersion</span>: <span class="val">batch/v1</span><br>
+                        <span class="kw">kind</span>: <span class="val">CronJob</span><br>
+                        <span class="kw">metadata</span>:<br>
+                        &nbsp;&nbsp;<span class="key">name</span>: <span class="str">say-hi-job</span><br>
+                        &nbsp;&nbsp;<span class="key">namespace</span>: <span class="str">dev</span><br>
+                        <span class="kw">spec</span>:<br>
+                        &nbsp;&nbsp;<span class="key">schedule</span>: <span class="str">"*/1 * * * *"</span><br>
+                        &nbsp;&nbsp;<span class="key">jobTemplate</span>:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">spec</span>:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">template</span>:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">spec</span>:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                            class="key">containers</span>:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span
+                            class="key">name</span>: <span class="str">say-hi</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                            class="key">image</span>: <span class="str">gauravpal1828/user-service:latest</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                            class="key">command</span>:<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-
+                        <span class="str">node</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-
+                        <span class="str">src/hello.js</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                            class="key">restartPolicy</span>: <span class="val">OnFailure</span>
+                    </div>
+                    <div class="code" style="font-size:11px;margin-top:8px">
+                        <span class="cmt">// src/hello.js</span><br>
+                        <span class="kw">function</span> <span class="key">sayHi</span>() {<br>
+                        &nbsp;&nbsp;<span class="val">console</span>.<span class="key">log</span>(<span class="str">"Hi!
+                            "</span> + <span class="kw">new</span> <span class="val">Date</span>());<br>
+                        &nbsp;&nbsp;<span class="val">process</span>.<span class="key">exit</span>(<span
+                            class="num">0</span>); <span class="cmt">// 🔑 required!</span><br>
+                        }<br>
+                        <span class="key">sayHi</span>();
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SECTION: Commands -->
+    <div class="section">⌨️ Commands — Complete Reference</div>
+    <div class="grid">
+
+        <div class="card c-blue">
+            <span class="card-emoji">🚀</span>
+            <div class="card-title">Setup & Start</div>
+            <div class="cmd-list">
+                <div class="cmd-item"><span class="cmd-code">minikube start</span><span class="cmd-desc">Start local K8s
+                        cluster</span></div>
+                <div class="cmd-item"><span class="cmd-code">minikube addons enable ingress</span><span
+                        class="cmd-desc">Enable Ingress controller</span></div>
+                <div class="cmd-item"><span class="cmd-code">minikube addons enable metrics-server</span><span
+                        class="cmd-desc">Enable HPA metrics collection</span></div>
+                <div class="cmd-item"><span class="cmd-code">minikube tunnel</span><span class="cmd-desc">Open tunnel
+                        for Ingress (keep terminal open)</span></div>
+                <div class="cmd-item"><span class="cmd-code">minikube image load &lt;image&gt;</span><span
+                        class="cmd-desc">Load local Docker image into minikube</span></div>
+            </div>
+        </div>
+
+        <div class="card c-purple">
+            <span class="card-emoji">📋</span>
+            <div class="card-title">Apply in this order</div>
+            <div class="checklist" id="apply-checklist">
+                <div class="check-item" onclick="toggle(this)">
+                    <div class="check-box"></div>
+                    <div class="check-text"><code
+                            style="color:#fbbf24;font-family:JetBrains Mono,monospace;font-size:11px">kubectl apply -f namespace.yaml</code>
+                    </div>
+                </div>
+                <div class="check-item" onclick="toggle(this)">
+                    <div class="check-box"></div>
+                    <div class="check-text"><code
+                            style="color:#fbbf24;font-family:JetBrains Mono,monospace;font-size:11px">kubectl apply -f configmap.yaml</code>
+                    </div>
+                </div>
+                <div class="check-item" onclick="toggle(this)">
+                    <div class="check-box"></div>
+                    <div class="check-text"><code
+                            style="color:#fbbf24;font-family:JetBrains Mono,monospace;font-size:11px">kubectl apply -f secret.yaml</code>
+                    </div>
+                </div>
+                <div class="check-item" onclick="toggle(this)">
+                    <div class="check-box"></div>
+                    <div class="check-text"><code
+                            style="color:#fbbf24;font-family:JetBrains Mono,monospace;font-size:11px">kubectl apply -f deployment.yaml</code>
+                    </div>
+                </div>
+                <div class="check-item" onclick="toggle(this)">
+                    <div class="check-box"></div>
+                    <div class="check-text"><code
+                            style="color:#fbbf24;font-family:JetBrains Mono,monospace;font-size:11px">kubectl apply -f service.yaml</code>
+                    </div>
+                </div>
+                <div class="check-item" onclick="toggle(this)">
+                    <div class="check-box"></div>
+                    <div class="check-text"><code
+                            style="color:#fbbf24;font-family:JetBrains Mono,monospace;font-size:11px">kubectl apply -f ingress.yaml</code>
+                    </div>
+                </div>
+                <div class="check-item" onclick="toggle(this)">
+                    <div class="check-box"></div>
+                    <div class="check-text"><code
+                            style="color:#fbbf24;font-family:JetBrains Mono,monospace;font-size:11px">kubectl apply -f hpa.yaml</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card c-green">
+            <span class="card-emoji">🔍</span>
+            <div class="card-title">Check & Debug</div>
+            <div class="cmd-list">
+                <div class="cmd-item"><span class="cmd-code">kubectl get all -n dev</span><span class="cmd-desc">See
+                        everything in dev namespace</span></div>
+                <div class="cmd-item"><span class="cmd-code">kubectl get hpa -n dev</span><span class="cmd-desc">Check
+                        HPA status and CPU metrics</span></div>
+                <div class="cmd-item"><span class="cmd-code">kubectl describe pod &lt;name&gt; -n dev</span><span
+                        class="cmd-desc">Full pod details + events (use for debugging)</span></div>
+                <div class="cmd-item"><span class="cmd-code">kubectl logs &lt;pod&gt; -n dev</span><span
+                        class="cmd-desc">View container logs</span></div>
+                <div class="cmd-item"><span class="cmd-code">kubectl exec -it &lt;pod&gt; -n dev -- env</span><span
+                        class="cmd-desc">Check env vars inside container</span></div>
+                <div class="cmd-item"><span class="cmd-code">kubectl get pods -n dev -w</span><span
+                        class="cmd-desc">Watch pods in real time (rolling update)</span></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SECTION: Hard-Won Lessons -->
+    <div class="section">🔥 Hard-Won Lessons</div>
+    <div class="grid">
+
+        <div class="card c-red span3">
+            <span class="card-emoji">💀</span>
+            <div class="card-title">Mistakes you will make — remember these</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">
+                <div class="lesson-item warn">
+                    <span class="lesson-icon">🔴</span>
+                    <div class="lesson-body">
+                        <div class="lesson-title">ConfigMap name mismatch</div>
+                        <div class="lesson-desc"><code>configMapRef.name</code> in deployment must EXACTLY match
+                            <code>metadata.name</code> in configmap.yaml. One typo = <code>CrashLoopBackOff</code>.
+                        </div>
+                    </div>
+                </div>
+                <div class="lesson-item warn">
+                    <span class="lesson-icon">🔴</span>
+                    <div class="lesson-body">
+                        <div class="lesson-title">Creating raw Pods</div>
+                        <div class="lesson-desc">Raw pods don't auto-restart. Always use Deployment. The only reason to
+                            create a raw pod is for learning — never production.</div>
+                    </div>
+                </div>
+                <div class="lesson-item warn">
+                    <span class="lesson-icon">🔴</span>
+                    <div class="lesson-body">
+                        <div class="lesson-title">Working in default namespace</div>
+                        <div class="lesson-desc">Always add <code>namespace: dev</code> to every YAML. Always add
+                            <code>-n dev</code> to every kubectl command.</div>
+                    </div>
+                </div>
+                <div class="lesson-item warn">
+                    <span class="lesson-icon">🔴</span>
+                    <div class="lesson-body">
+                        <div class="lesson-title">HPA shows &lt;unknown&gt;</div>
+                        <div class="lesson-desc">metrics-server not enabled. Run
+                            <code>minikube addons enable metrics-server</code> and wait 60 seconds.</div>
+                    </div>
+                </div>
+                <div class="lesson-item warn">
+                    <span class="lesson-icon">🔴</span>
+                    <div class="lesson-body">
+                        <div class="lesson-title">Forgot process.exit(0) in CronJob</div>
+                        <div class="lesson-desc">K8s thinks the job is still running. Container keeps running forever.
+                            Always call <code>process.exit(0)</code> at the end of your job script.</div>
+                    </div>
+                </div>
+                <div class="lesson-item tip">
+                    <span class="lesson-icon">✅</span>
+                    <div class="lesson-body">
+                        <div class="lesson-title">/health must be intelligent</div>
+                        <div class="lesson-desc">Your health endpoint should check DB connectivity. If DB is down,
+                            return 503. K8s will hold traffic until it recovers.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function toggle(el) {
+            el.classList.toggle('done');
+            const box = el.querySelector('.check-box');
+            box.textContent = el.classList.contains('done') ? '✓' : '';
+        }
+    </script>
+
+</body>
+
+</html>

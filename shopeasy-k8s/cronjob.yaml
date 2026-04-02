@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: say-hi-job
+  namespace: dev
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: say-hi
+              image: gauravpal1828/user-service:local
+              imagePullPolicy: Never
+              command:
+                - node
+                - src/hello.js
+          restartPolicy: OnFailure
