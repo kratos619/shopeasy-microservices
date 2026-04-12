@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: user-service
-  namespace: dev
 spec:
   replicas: 2
   selector:
@@ -14,33 +13,31 @@ spec:
         app: user-service
     spec:
       containers:
-        - name: user-service
-          image: gauravpal1828/user-service:latest
-          ports:
-            - containerPort: 3001
-          resources:
-            requests:
-              cpu: "100m"
-              memory: "128Mi"
-            limits:
-              cpu: "200m"
-              memory: "256Mi"
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 3001
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            failureThreshold: 3
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 3001
-            initialDelaySeconds: 15
-            periodSeconds: 20
-            failureThreshold: 3          
-          envFrom:
-            - configMapRef:
-                name: user-service-config
-            - secretRef:
-                name: user-service-secret
+      - name: user-service
+        image: gauravpal1828/user-service:latest
+        ports:
+        - containerPort: 3001
+        envFrom:
+        - configMapRef:
+            name: user-service-config
+        - secretRef:
+            name: user-service-secret
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: user-service
+  ports:
+  - port: 80
+    targetPort: 3001
